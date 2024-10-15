@@ -94,7 +94,7 @@ public class AppWindow extends JFrame {
         try{
             remove(playField);
         } catch (NullPointerException e){
-            System.out.println("No Playfield available");
+            System.out.println("No Play Field Available");
         }
 
         playField = new JPanel();
@@ -543,7 +543,7 @@ public class AppWindow extends JFrame {
         private NumberField colField, rowField, bombField;
         private JButton doneButton, cancelButton;
 
-        private Window window;
+        private final Window window;
 
         CustomisationDialog(Window window){
 
@@ -573,13 +573,18 @@ public class AppWindow extends JFrame {
             doneButton.setBorder(BorderFactory.createEtchedBorder());
             doneButton.setBackground(new Color(150, 230, 150));
             doneButton.addActionListener((e) -> {
-                columns = colField.getNumber();
-                rows = rowField.getNumber();
-                bombs = bombField.getNumber();
-                newGame();
-                this.dispose();
-                window.setEnabled(true);
-                window.requestFocus();
+
+                if((colField.getNumber() * rowField.getNumber()) > (bombField.getNumber() + 8)){
+                    columns = colField.getNumber();
+                    rows = rowField.getNumber();
+                    bombs = bombField.getNumber();
+                    newGame();
+                    this.dispose();
+                    window.setEnabled(true);
+                    window.requestFocus();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Maximum aantal bommen overschreden!", "Bomb Overload", JOptionPane.WARNING_MESSAGE);
+                }
             });
 
             cancelButton = new JButton(" Annuleren ");
@@ -598,6 +603,8 @@ public class AppWindow extends JFrame {
 
             GroupLayout layout = new GroupLayout(pane);
             pane.setLayout(layout);
+
+            pane.setEnabled(false);
 
             layout.setAutoCreateGaps(true);
             layout.setAutoCreateContainerGaps(true);
@@ -662,14 +669,16 @@ public class AppWindow extends JFrame {
                     super.focusLost(e);
                     if(!getText().equals("")){
                         try {
-                            Integer.parseInt(getText());
-                        } catch (Exception ex1){
-                            try{
-                                Float.parseFloat(getText().replace(",", "."));
-                            } catch (Exception ex2){
-                                JOptionPane.showMessageDialog(null, "<html>Gelieve een getal in te geven<br>" + ex2.getMessage() + "</html>");
+                            int a = Integer.parseInt(getText());
+                            if(a < 1){
+                                JOptionPane.showMessageDialog(null,
+                                        "<html>Gelieve een positief geheel getal groter dan 0 in te geven.</html>");
                                 setText(value);
                             }
+                        } catch (Exception ex1){
+                            JOptionPane.showMessageDialog(null,
+                                    "<html>Gelieve een positief geheel getal groter dan 0 in te geven.</html>");
+                            setText(value);
                         }
                     } else if (needsNumber){
                         setText(value);
@@ -682,15 +691,6 @@ public class AppWindow extends JFrame {
                     value = getText();
                 }
             });
-        }
-    }
-
-
-    public static void main(String[] args) {
-        try{
-            EventQueue.invokeAndWait(AppWindow::new);
-        } catch (Exception e){
-            System.out.println(e.getMessage());
         }
     }
 }
