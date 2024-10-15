@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -54,7 +56,7 @@ public class AppWindow extends JFrame {
         newGame();
     }
 
-    private void newGame(){
+    void newGame(){
 
         setSize(new Dimension(30 * columns,30 * (rows + 1)));
 
@@ -128,18 +130,16 @@ public class AppWindow extends JFrame {
         exitGameItem.addActionListener((e)->dispose());
 
         JRadioButtonMenuItem easyItem = new JRadioButtonMenuItem("Makkelijk", true);
-        easyItem.addActionListener((e)->{rows = 10; columns = 10; bombs = 10; newGame();});
+        easyItem.addActionListener((e) -> {rows = 10; columns = 10; bombs = 10; newGame();});
 
         JRadioButtonMenuItem mediumItem = new JRadioButtonMenuItem("Medium");
-        mediumItem.addActionListener((e)->{rows = 16; columns = 16; bombs = 40; newGame();});
+        mediumItem.addActionListener((e) -> {rows = 16; columns = 16; bombs = 40; newGame();});
 
         JRadioButtonMenuItem hardItem = new JRadioButtonMenuItem("Expert");
-        hardItem.addActionListener((e)->{rows = 16; columns = 30; bombs = 99; newGame();});
+        hardItem.addActionListener((e) -> {rows = 16; columns = 30; bombs = 99; newGame();});
 
         JRadioButtonMenuItem customItem = new JRadioButtonMenuItem("Aangepast");
-        customItem.addActionListener((e)->{
-            new CustomisationDialog(this);
-        });
+        customItem.addActionListener((e) -> new CustomisationDialog(this));
 
         ButtonGroup difficultyGroup = new ButtonGroup();
         difficultyGroup.add(easyItem);
@@ -537,15 +537,63 @@ public class AppWindow extends JFrame {
         }
     }
 
-    private static class CustomisationDialog extends JDialog{
+    private class CustomisationDialog extends JDialog{
+
+        private JLabel colLbl, rowLbl, bombLbl;
+        private NumberField colField, rowField, bombField;
+        private JButton doneButton, cancelButton;
+
+        private Window window;
 
         CustomisationDialog(Window window){
+
             super(window, "Customisation");
             setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-            JLabel colLbl = new JLabel("Kolommen");
-            JLabel rowLbl = new JLabel("Rijen");
-            JLabel bombLbl = new JLabel("Bommen");
+            this.window = window;
+            window.setEnabled(false);
 
+            createObjects();
+            createLayout();
+        }
+
+        private void createObjects() {
+            colLbl = new JLabel("Kolommen");
+            colLbl.setFont(getFont().deriveFont(Font.BOLD, 13));
+            rowLbl = new JLabel("Rijen");
+            rowLbl.setFont(getFont().deriveFont(Font.BOLD, 13));
+            bombLbl = new JLabel("Bommen");
+            bombLbl.setFont(getFont().deriveFont(Font.BOLD, 13));
+
+            colField = new NumberField(columns, 3);
+            rowField = new NumberField(rows, 3);
+            bombField = new NumberField(bombs, 3);
+
+            doneButton = new JButton(" Toepassen ");
+            doneButton.setFont(getFont().deriveFont(Font.BOLD, 15));
+            doneButton.setBorder(BorderFactory.createEtchedBorder());
+            doneButton.setBackground(new Color(150, 230, 150));
+            doneButton.addActionListener((e) -> {
+                columns = colField.getNumber();
+                rows = rowField.getNumber();
+                bombs = bombField.getNumber();
+                newGame();
+                this.dispose();
+                window.setEnabled(true);
+                window.requestFocus();
+            });
+
+            cancelButton = new JButton(" Annuleren ");
+            cancelButton.setFont(getFont().deriveFont(Font.BOLD, 15));
+            cancelButton.setBorder(BorderFactory.createEtchedBorder());
+            cancelButton.setBackground(new Color(250, 85, 75));
+            cancelButton.addActionListener((e) -> {
+                this.dispose();
+                window.setEnabled(true);
+                window.requestFocus();
+            });
+        }
+
+        private void createLayout(){
             Container pane = getContentPane();
 
             GroupLayout layout = new GroupLayout(pane);
@@ -556,28 +604,87 @@ public class AppWindow extends JFrame {
 
             layout.setHorizontalGroup(layout.createParallelGroup()
                     .addGroup(layout.createSequentialGroup()
-                            .addComponent(colLbl))
+                            .addComponent(colLbl)
+                            .addComponent(colField))
                     .addGroup(layout.createSequentialGroup()
-                            .addComponent(rowLbl))
+                            .addComponent(rowLbl)
+                            .addComponent(rowField))
                     .addGroup(layout.createSequentialGroup()
-                            .addComponent(bombLbl))
+                            .addComponent(bombLbl)
+                            .addComponent(bombField))
+                    .addGroup(layout.createSequentialGroup()
+                            .addComponent(doneButton)
+                            .addComponent(cancelButton))
             );
             layout.setVerticalGroup(layout.createSequentialGroup()
                     .addGroup(layout.createParallelGroup()
-                            .addComponent(colLbl))
+                            .addComponent(colLbl)
+                            .addComponent(colField))
                     .addGroup(layout.createParallelGroup()
-                            .addComponent(rowLbl))
+                            .addComponent(rowLbl)
+                            .addComponent(rowField))
                     .addGroup(layout.createParallelGroup()
-                            .addComponent(bombLbl)));
+                            .addComponent(bombLbl).addComponent(bombField))
+                    .addGap(30)
+                    .addGroup(layout.createParallelGroup()
+                            .addComponent(doneButton)
+                            .addComponent(cancelButton))
+            );
 
             layout.linkSize(colLbl, rowLbl, bombLbl);
+            layout.linkSize(doneButton, cancelButton);
 
             pack();
             setLocationRelativeTo(null);
             setVisible(true);
         }
-
     }
+
+    static class NumberField extends JTextField {
+
+        private String value;
+        private final boolean needsNumber = true;
+
+        public NumberField(int value, int colums){
+            super(String.valueOf(value), colums);
+            setListeners();
+        }
+
+        public int getNumber(){
+            return Integer.parseInt(getText());
+        }
+
+        private void setListeners(){
+
+            this.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusLost(FocusEvent e) {
+                    super.focusLost(e);
+                    if(!getText().equals("")){
+                        try {
+                            Integer.parseInt(getText());
+                        } catch (Exception ex1){
+                            try{
+                                Float.parseFloat(getText().replace(",", "."));
+                            } catch (Exception ex2){
+                                JOptionPane.showMessageDialog(null, "<html>Gelieve een getal in te geven<br>" + ex2.getMessage() + "</html>");
+                                setText(value);
+                            }
+                        }
+                    } else if (needsNumber){
+                        setText(value);
+                    }
+                }
+
+                @Override
+                public void focusGained(FocusEvent e) {
+                    super.focusGained(e);
+                    value = getText();
+                }
+            });
+        }
+    }
+
 
     public static void main(String[] args) {
         try{
