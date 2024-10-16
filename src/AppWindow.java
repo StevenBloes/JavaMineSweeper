@@ -16,7 +16,7 @@ public class AppWindow extends JFrame {
     private JPanel playField;
     private final Color BorderColor = Color.LIGHT_GRAY;
     private final Color BackGroundColor = new Color(240,240,240);
-    private boolean isFirstClick;
+    private boolean isFirstClick, hasWon;
 
     private final Color[] colors = {
             new Color(255, 255, 255),
@@ -59,6 +59,7 @@ public class AppWindow extends JFrame {
 
         neededForWin = (rows * columns) - bombs;
         flagCount = 0;
+        hasWon = false;
 
         counterLbl.setText(String.format("Cells to uncover: %s | Flags Dropped: %s  ", neededForWin, flagCount));
 
@@ -179,6 +180,14 @@ public class AppWindow extends JFrame {
     }
 
     private void gameWon(){
+
+        hasWon = true;
+        for(ArrayList<FieldButton> row : fieldButtons){
+            for(FieldButton button : row){
+                button.reveal();
+            }
+        }
+
         if(JOptionPane.showConfirmDialog(this,
                 "<html><b>GAME WON</b><br>Start a new game?</html>",
                 "GAME WON",
@@ -326,10 +335,17 @@ public class AppWindow extends JFrame {
         void reveal(){
             isActive = false;
             if(isBomb){
-                setText("\uD83D\uDCA3");
-                setForeground(Color.RED);
+                if(hasWon){
+                    setText("\uD83C\uDF3B");
+                    setForeground(new Color(250,220,0));
+                    setBackground(new Color(120,190,120));
+                } else {
+                    setText("\uD83D\uDCA3");
+                    setForeground(Color.RED);
+                    setBackground(new Color(250,190,180));
+                }
                 setBorder(BorderFactory.createLineBorder(BorderColor, 1));
-                setBackground(new Color(250,190,180));
+
             } else {
                 int bombs = getSurroundingBombs();
                 if (bombs != 0) {
