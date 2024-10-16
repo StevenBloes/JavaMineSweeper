@@ -1,9 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
 
 
@@ -548,9 +545,15 @@ public class AppWindow extends JFrame {
         CustomisationDialog(Window window){
 
             super(window, "Customisation");
-            setDefaultCloseOperation(DISPOSE_ON_CLOSE);
             this.window = window;
             window.setEnabled(false);
+            addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    super.windowClosing(e);
+                    window.setEnabled(true);
+                }
+            });
 
             createObjects();
             createLayout();
