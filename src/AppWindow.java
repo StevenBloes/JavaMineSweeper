@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Collections;
 
 
 public class AppWindow extends JFrame {
@@ -17,7 +18,7 @@ public class AppWindow extends JFrame {
     private final Color BorderColor = Color.LIGHT_GRAY;
     private final Color BackGroundColor = new Color(240,240,240);
     private boolean isFirstClick, hasWon;
-
+    private ArrayList<Color> flowerColors;
     private final Color[] colors = {
             new Color(255, 255, 255),
             new Color(0, 0, 255),
@@ -51,6 +52,15 @@ public class AppWindow extends JFrame {
 
         initMenu();
         newGame();
+
+        flowerColors = new ArrayList<>();
+        flowerColors.add(new Color(250,220,0));
+        flowerColors.add(new Color(240,200,0));
+        flowerColors.add(new Color(250,150,0));
+        flowerColors.add(new Color(250,100,50));
+        flowerColors.add(new Color(200,100,200));
+        flowerColors.add(new Color(200,50,150));
+        flowerColors.add(new Color(100,100,255));
     }
 
     void newGame(){
@@ -267,8 +277,6 @@ public class AppWindow extends JFrame {
                             } else {
                                 if(getSurroundingBombs() == getSurroundingFlags()){
                                     showSurroundingTiles();
-                                } else {
-                                    System.out.println("Bombs: " + getSurroundingBombs() + ", Flags: " + getSurroundingFlags());
                                 }
                             }
                         }
@@ -336,9 +344,10 @@ public class AppWindow extends JFrame {
             isActive = false;
             if(isBomb){
                 if(hasWon){
-                    setText("\uD83C\uDF3B");
-                    setForeground(new Color(250,220,0));
-                    setBackground(new Color(120,190,120));
+                    setText("✿");
+                    Collections.shuffle(flowerColors);
+                    setForeground(flowerColors.get(0));
+                    setBackground(new Color(150,210,150));
                 } else {
                     setText("\uD83D\uDCA3");
                     setForeground(Color.RED);
