@@ -42,34 +42,15 @@ public class AppWindow extends JFrame {
         setLocationRelativeTo(null);
     }
 
-    private void initObjects(){
-        fieldButtons = new ArrayList<>();
-        counterLbl = new JLabel("Click to start game");
-        counterLbl.setHorizontalAlignment(JLabel.RIGHT);
-
-        setLayout(new BorderLayout());
-        add(counterLbl, BorderLayout.SOUTH);
-
-        initMenu();
-        newGame();
-
-        flowerColors = new ArrayList<>();
-        flowerColors.add(new Color(250,220,0));
-        flowerColors.add(new Color(240,200,0));
-        flowerColors.add(new Color(250,150,0));
-        flowerColors.add(new Color(250,100,50));
-        flowerColors.add(new Color(200,100,200));
-        flowerColors.add(new Color(200,50,150));
-        flowerColors.add(new Color(100,100,255));
-    }
-
     void newGame(){
 
+        setEnabled(false);
         setSize(new Dimension(30 * columns,30 * (rows + 1)));
 
         neededForWin = (rows * columns) - bombs;
         flagCount = 0;
         hasWon = false;
+        isFirstClick = true;
 
         counterLbl.setText(String.format("Cells to uncover: %s | Flags Dropped: %s  ", neededForWin, flagCount));
 
@@ -99,10 +80,8 @@ public class AppWindow extends JFrame {
             fieldButtons.add(row);
         }
 
-        try{
+        if (playField != null){
             remove(playField);
-        } catch (NullPointerException e){
-            System.out.println("No Play Field Available");
         }
 
         playField = new JPanel();
@@ -123,7 +102,45 @@ public class AppWindow extends JFrame {
         revalidate();
         repaint();
 
+        setEnabled(true);
         isFirstClick = true;
+    }
+
+    private void gameWon(){
+
+        hasWon = true;
+        for(ArrayList<FieldButton> row : fieldButtons){
+            for(FieldButton button : row){
+                button.reveal();
+            }
+        }
+
+        if(JOptionPane.showConfirmDialog(this,
+                "<html><b>GAME WON</b><br>Start a new game?</html>",
+                "GAME WON",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.INFORMATION_MESSAGE)
+                == JOptionPane.OK_OPTION){
+            SwingUtilities.invokeLater(this::newGame);
+        }
+    }
+
+    private void gameOver(){
+
+        for(ArrayList<FieldButton> row : fieldButtons){
+            for(FieldButton button : row){
+                button.reveal();
+            }
+        }
+
+        if(JOptionPane.showConfirmDialog(this,
+                "<html><b>GAME OVER</b><br>Start a new game?</html>",
+                "GAME OVER",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.INFORMATION_MESSAGE)
+                == JOptionPane.OK_OPTION){
+            SwingUtilities.invokeLater(this::newGame);
+        }
     }
 
     private void initMenu(){
@@ -138,13 +155,25 @@ public class AppWindow extends JFrame {
         exitGameItem.addActionListener((e)->dispose());
 
         JRadioButtonMenuItem easyItem = new JRadioButtonMenuItem("Makkelijk", true);
-        easyItem.addActionListener((e) -> {rows = 10; columns = 10; bombs = 10; newGame();});
+        easyItem.addActionListener((e) -> {
+            rows = 10; columns = 10; bombs = 10;
+            newGame();
+            setLocationRelativeTo(null);
+        });
 
         JRadioButtonMenuItem mediumItem = new JRadioButtonMenuItem("Medium");
-        mediumItem.addActionListener((e) -> {rows = 16; columns = 16; bombs = 40; newGame();});
+        mediumItem.addActionListener((e) -> {
+            rows = 16; columns = 16; bombs = 40;
+            newGame();
+            setLocationRelativeTo(null);
+        });
 
         JRadioButtonMenuItem hardItem = new JRadioButtonMenuItem("Expert");
-        hardItem.addActionListener((e) -> {rows = 16; columns = 30; bombs = 99; newGame();});
+        hardItem.addActionListener((e) -> {
+            rows = 16; columns = 30; bombs = 99;
+            newGame();
+            setLocationRelativeTo(null);
+        });
 
         JRadioButtonMenuItem customItem = new JRadioButtonMenuItem("Aangepast");
         customItem.addActionListener((e) -> new CustomisationDialog(this));
@@ -171,41 +200,25 @@ public class AppWindow extends JFrame {
 
     }
 
-    private void gameOver(){
+    private void initObjects(){
+        fieldButtons = new ArrayList<>();
+        counterLbl = new JLabel("Click to start game");
+        counterLbl.setHorizontalAlignment(JLabel.RIGHT);
 
-        for(ArrayList<FieldButton> row : fieldButtons){
-            for(FieldButton button : row){
-                button.reveal();
-            }
-        }
+        setLayout(new BorderLayout());
+        add(counterLbl, BorderLayout.SOUTH);
 
-        if(JOptionPane.showConfirmDialog(this,
-                "<html><b>GAME OVER</b><br>Start a new game?</html>",
-                "GAME OVER",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.INFORMATION_MESSAGE)
-                == JOptionPane.OK_OPTION){
-            newGame();
-        }
-    }
+        initMenu();
+        newGame();
 
-    private void gameWon(){
-
-        hasWon = true;
-        for(ArrayList<FieldButton> row : fieldButtons){
-            for(FieldButton button : row){
-                button.reveal();
-            }
-        }
-
-        if(JOptionPane.showConfirmDialog(this,
-                "<html><b>GAME WON</b><br>Start a new game?</html>",
-                "GAME WON",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.INFORMATION_MESSAGE)
-                == JOptionPane.OK_OPTION){
-            newGame();
-        }
+        flowerColors = new ArrayList<>();
+        flowerColors.add(new Color(250,220,0));
+        flowerColors.add(new Color(240,200,0));
+        flowerColors.add(new Color(250,150,0));
+        flowerColors.add(new Color(250,100,50));
+        flowerColors.add(new Color(200,100,200));
+        flowerColors.add(new Color(200,50,150));
+        flowerColors.add(new Color(100,100,255));
     }
 
     private class FieldButton extends JButton {
@@ -607,6 +620,7 @@ public class AppWindow extends JFrame {
                     rows = rowField.getNumber();
                     bombs = bombField.getNumber();
                     newGame();
+                    window.setLocationRelativeTo(null);
                     this.dispose();
                     window.setEnabled(true);
                     window.requestFocus();
@@ -680,8 +694,8 @@ public class AppWindow extends JFrame {
         private String value;
         private final boolean needsNumber = true;
 
-        public NumberField(int value, int colums){
-            super(String.valueOf(value), colums);
+        public NumberField(int value, int columns){
+            super(String.valueOf(value), columns);
             setListeners();
         }
 
